@@ -8,8 +8,9 @@
 
 let options = [
 	'option@development',
+	'option@autoStart',
 	'option@instance-of-pub-key',
-	'option@debugLogging'
+	'option@debugLogging',
 ];
 
 // Load items from addon storage

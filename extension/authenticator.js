@@ -26,7 +26,7 @@ const initAuthenticator = async () => {
             return this.storage;
         }
     };
-    const result = await chrome.storage.local.get(['system_credentials', 'option@debugLogging', 'extension_salt', 'extension_ca_key']);
+    const result = await chrome.storage.local.get(['system_credentials', 'option@debugLogging', 'extension_salt', 'extension_ca_key', 'option@autoStart']);
 
     // Manage extension salt
     if (result.extension_salt) {
@@ -64,6 +64,7 @@ const initAuthenticator = async () => {
     // authenticator.storage = result.system_credentials || [];
     if (result.system_credentials) authenticator.storage = result.system_credentials;
     authenticator.debugLogging = result['option@debugLogging'] === true;
+    authenticator.autoStart = result['option@autoStart'] === true;
     return authenticator;
 };
 
@@ -196,17 +197,8 @@ const handleMessage = async (request, sender, sendResponse) => {
         deviceInstance = await initAuthenticator();
     }
 
-    const unlockBtn = document.getElementById('unlock-btn');
-    const statusDiv = document.getElementById('status');
-
-    statusDiv.textContent = "Authentication Required";
-    unlockBtn.style.display = "inline-block";
-
-    const newBtn = unlockBtn.cloneNode(true);
-    unlockBtn.parentNode.replaceChild(newBtn, unlockBtn);
-
-    newBtn.addEventListener('click', async () => {
-        console.log('[Auth] Unlock button clicked. Using Native Messaging.');
+    const authenticate = async (console_message) => {
+        console.log(console_message);
         newBtn.disabled = true;
         newBtn.style.pointerEvents = "none"
         newBtn.innerText = "Unlocking with Fingerprint..."
@@ -236,6 +228,22 @@ const handleMessage = async (request, sender, sendResponse) => {
                 });
             });
         }
+    }
+
+    const unlockBtn = document.getElementById('unlock-btn');
+    const statusDiv = document.getElementById('status');
+
+    statusDiv.textContent = "Authentication Required";
+    unlockBtn.style.display = "inline-block";
+
+    const newBtn = unlockBtn.cloneNode(true);
+    unlockBtn.parentNode.replaceChild(newBtn, unlockBtn);
+
+    if (deviceInstance.autoStart) {
+        await authenticate('[Auth] Popup opened. Using Native Messaging.')
+    }
+    newBtn.addEventListener('click', async () => {
+        await authenticate('[Auth] Unlock button clicked. Using Native Messaging.')
     });
 };
 
