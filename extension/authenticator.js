@@ -77,7 +77,8 @@ const debugLog = (message, ...args) => {
 // Instead of navigator.credentials, we talk to the native python host
 const getMasterKeyFromNativeHost = async () => {
     const statusDiv = document.getElementById('status');
-    statusDiv.textContent = "Connecting to System Fingerprint Service...";
+    // statusDiv.textContent = "Connecting to System Fingerprint Service...";
+    statusDiv.textContent = "Waiting for fingerprint...";
     console.log('[Auth] Connecting to Fingerprint Service: io.github.samveen.webauthnlinux');
 
     return new Promise((resolve, reject) => {
@@ -207,13 +208,14 @@ const handleMessage = async (request, sender, sendResponse) => {
     newBtn.addEventListener('click', async () => {
         console.log('[Auth] Unlock button clicked. Using Native Messaging.');
         newBtn.disabled = true;
+        newBtn.style.pointerEvents = "none"
+        newBtn.innerText = "Unlocking with Fingerprint..."
         try {
             const masterKey = await getMasterKeyFromNativeHost();
 
             console.log('[Auth] Keys obtained.');
             // deviceInstance.masterkeysalt is already set in initAuthenticator or from storage
             deviceInstance.setMasterKey(masterKey);
-
             newBtn.style.display = "none";
             statusDiv.textContent = "Processing...";
 
@@ -221,8 +223,18 @@ const handleMessage = async (request, sender, sendResponse) => {
 
         } catch (e) {
             console.error('[Auth] Unlock process failed:', e);
-            statusDiv.textContent = "Error: " + e.message;
+            //statusDiv.textContent = "Error: " + e.message;
+            statusDiv.textContent = "Could not unlock - Please try again";
+            newBtn.innerText = "Unlock with Fingerprint"
+            newBtn.style.pointerEvents = ""
             newBtn.disabled = false;
+            requestAnimationFrame(() => {
+                newBtn.style.cursor = "default";
+
+                requestAnimationFrame(() => {
+                    newBtn.style.cursor = "pointer";
+                });
+            });
         }
     });
 };

@@ -138,8 +138,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.windows.create({
             url: "authenticator.html",
             type: "popup",
-            width: 400,
-            height: 600,
+            width: 304,
+            height: 180,
             focused: true
         }, (window) => {
             if(window)
